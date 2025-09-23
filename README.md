@@ -17,3 +17,11 @@
 
 ## 交付要求
 请开发以上网页，包括效果评估系统以及模型调用频次优化功能。针对以上 1 - 5 点，请把你的思考整理成文档，作为作品的说明一并提交。
+
+## 项目组件
+1. **DDD+TDD**
+2. **GIN+GRPC+PROTOBUF??**
+3. **MYSQL/MongoDB??+REDIS+KAFKA/RocketMQ??**
+4. **CRONJOB??**
+5. **ETCD??**
+6. **API?腾讯混元3D?Meshy?Kaedim??3d.csm.ai??**
