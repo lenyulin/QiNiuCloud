@@ -1,8 +1,12 @@
 package cache
 
-import "context"
+import (
+	"QiNiuCloud/QiNiuCloud/internal/domain"
+	"context"
+)
 
 type Cache interface {
-	Get(ctx context.Context, key string) (string, error)
+	FindByObjId(ctx context.Context, key string) ([]domain.ModelsInfo, error)
 	Set(ctx context.Context, key string, value string) error
+	GetModelByHash(ctx context.Context, hash string) (bool, error)
 }

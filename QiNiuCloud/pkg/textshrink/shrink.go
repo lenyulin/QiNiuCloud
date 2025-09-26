@@ -20,7 +20,7 @@ type Shrinker struct {
 const (
 	OPENAI_BASE_URL = "https://openai.qiniu.com/v1/chat/completions"
 	OPENAI_API_KEY  = "sk-ac3498e9cd6bceb54a6f9f1e62518d85772a93a98e77c20652faa22ee9643764"
-	PROMPT          = "请你精简这句话，提取它的主要表达内容："
+	PROMPT          = "请你精简这句话，提取它主要表达的内容："
 	MODEL           = "doubao-seed-1.6-flash"
 	ROLE            = "user"
 )

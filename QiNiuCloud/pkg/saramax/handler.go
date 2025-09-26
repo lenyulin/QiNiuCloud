@@ -31,7 +31,7 @@ func (h *Handler[T]) ConsumeClaim(session sarama.ConsumerGroupSession, claim sar
 		var t T
 		err := json.Unmarshal(msg.Value, &t)
 		if err != nil {
-			h.log.Error("Unmarshal Failed @wedy/pkg/tdd/saramax/handler.go line:30",
+			h.log.Error("Unmarshal Failed",
 				logger.String("Topic", msg.Topic),
 				logger.Int32("Partition", msg.Partition),
 				logger.String("Key", string(msg.Key)),
@@ -40,7 +40,7 @@ func (h *Handler[T]) ConsumeClaim(session sarama.ConsumerGroupSession, claim sar
 		}
 		err = h.fn(msg, t)
 		if err != nil {
-			h.log.Error("Consume Failed @wedy/pkg/tdd/saramax/handler.go line:43",
+			h.log.Error("Consume Failed",
 				logger.String("Topic", msg.Topic),
 				logger.Int32("Partition", msg.Partition),
 				logger.String("Key", string(msg.Key)),

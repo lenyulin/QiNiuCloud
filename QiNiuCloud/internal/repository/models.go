@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"QiNiuCloud/QiNiuCloud/internal/domain"
 	"QiNiuCloud/QiNiuCloud/internal/repository/cache"
 	"QiNiuCloud/QiNiuCloud/internal/repository/dao"
 	"QiNiuCloud/QiNiuCloud/pkg/bloomfilterx"
@@ -10,7 +11,7 @@ import (
 )
 
 type ModelsRepository interface {
-	Get(ctx context.Context, key string) (string, error)
+	GetModelsByToken(ctx context.Context, key string) ([]domain.ModelsInfo, error)
 	Set(ctx context.Context, key string, value string) error
 }
 type models struct {
@@ -20,12 +21,36 @@ type models struct {
 	filter bloomfilterx.BloomFilter
 }
 
-func (m *models) Get(ctx context.Context, key string) (string, error) {
-	res, err := m.cache.Get(ctx, key)
+func NewModelsRepository(l logger.ZapLogger, cache cache.Cache, dao dao.DAO, filter bloomfilterx.BloomFilter) ModelsRepository {
+	return &models{
+		l:      l,
+		cache:  cache,
+		dao:    dao,
+		filter: filter,
+	}
+}
+func (m *models) GetModelByHash(ctx context.Context, hash string) (bool, error) {
+	found, _ := m.cache.GetModelByHash(ctx, hash)
+	if found {
+		return found, nil
+	}
+	return m.dao.GetModelByHash(ctx, hash)
+}
+
+func (m *models) GetModelsByToken(ctx context.Context, key string) ([]domain.ModelsInfo, error) {
+	res, err := m.cache.FindByObjId(ctx, key)
 	if err == nil {
 		return res, nil
 	}
-	if errors.Is(err, cache.ErrRecordNotFound) {
+	if errors.Is(err, cache.ErrRecordNotFound) || errors.Is(err, cache.ErrFailedConnectToCache) {
+		if errors.Is(err, cache.ErrFailedConnectToCache) {
+			m.l.Error("Error Failed Connect To Cache",
+				logger.Field{
+					Key: "error",
+					Val: err.Error()},
+			)
+			return nil, err
+		}
 		//查询过滤器
 		find, err := m.filter.Get(ctx, key)
 		if err != nil {
@@ -34,7 +59,7 @@ func (m *models) Get(ctx context.Context, key string) (string, error) {
 					Key: "error",
 					Val: err.Error()},
 			)
-			return "", err
+			return nil, err
 		}
 		if !find {
 			m.l.Debug("Bloom Filter Not Found Key",
@@ -42,13 +67,25 @@ func (m *models) Get(ctx context.Context, key string) (string, error) {
 					Key: "Debug",
 					Val: ErrBloomFilterNotFoundRecord},
 			)
-			return "", ErrBloomFilterNotFoundRecord
+			return nil, ErrBloomFilterNotFoundRecord
 		}
-		//查询MySQL
-		//TODO implement me
-		panic("implement me")
+		res, err = m.dao.FindByObjId(ctx, key)
+		if err != nil {
+			m.l.Error("Record Not Found In DataBase",
+				logger.Field{
+					Key: "error",
+					Val: err.Error()},
+			)
+			return nil, err
+		}
+		return res, nil
 	}
-	return "", err
+	m.l.Error("Unexpected Error",
+		logger.Field{
+			Key: "error",
+			Val: err.Error()},
+	)
+	return nil, ErrInternalServerError
 }
 
 func (m *models) Set(ctx context.Context, key string, value string) error {

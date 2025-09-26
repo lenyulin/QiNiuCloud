@@ -68,5 +68,4 @@ func (b *BatchHandler[T]) ConsumeClaim(session sarama.ConsumerGroupSession, clai
 			session.MarkMessage(msg, "")
 		}
 	}
-	return nil
 }

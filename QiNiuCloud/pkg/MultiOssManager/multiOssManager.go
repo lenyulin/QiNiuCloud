@@ -25,12 +25,11 @@ type OSSObject struct {
 	LastModified  time.Time // 最近修改时间
 }
 type OSSPool struct {
-	mainPool             []*OSSObject
-	mainPoolSize         int
-	backupPool           []*OSSObject
-	backupPoolSize       int
-	failureMainOssPool   map[int]*OSSObject
-	failureBackupOssPool map[int]*OSSObject
+	mainPool       []*OSSObject
+	mainPoolSize   int
+	backupPool     []*OSSObject
+	backupPoolSize int
+	failureOssPool map[int]*OSSObject
 }
 
 const (
@@ -53,12 +52,16 @@ type Status struct {
 	IsFailure   bool
 }
 type ossManager struct {
-	l       logger.ZapLogger
-	OSSPool *OSSPool
-	msgChan chan *ActorMsg
+	l             logger.ZapLogger
+	nAvailableOss int64
+	OSSPool       *OSSPool
+	msgChan       chan *ActorMsg
 }
 
-func (o *ossManager) runActor() {
+func (o *ossManager) GetAvailableOssCount() int64 {
+	return o.nAvailableOss
+}
+func (o *ossManager) RunActor() {
 	for msg := range o.msgChan {
 		switch msg.op {
 		case UploadFileToOSS:
@@ -67,33 +70,72 @@ func (o *ossManager) runActor() {
 			o.Delete()
 		case FindFileFromOSS:
 			o.Find()
-		case ChangeOssStatusToSuccess:
-
-		case ChangeStatusToAvailable:
 		case ChangeOssStatusToFail:
+			o.markAsFailed(msg.ossObject)
 		default:
 			panic("unhandled default case")
 		}
 	}
 }
 
-func (o *ossManager) markAsFailed(object *OSSObject, version int64) {
+func (o *ossManager) StartFailureOssManager() {
+	for {
+		for _, ossObject := range o.OSSPool.mainPool {
+			if !ossObject.IsAvailable.Load() && ossObject.IsFailure.Load() {
+				if o.testClientUpload(ossObject) == nil {
+					ossObject.IsFailure.Store(false)
+					atomic.AddInt64(&o.nAvailableOss, 1)
+					ossObject.IsAvailable.Store(true)
+				}
+			}
+		}
+		for _, ossObject := range o.OSSPool.backupPool {
+			if !ossObject.IsAvailable.Load() && ossObject.IsFailure.Load() {
+				if o.testClientUpload(ossObject) == nil {
+					ossObject.IsFailure.Store(false)
+					atomic.AddInt64(&o.nAvailableOss, 1)
+					ossObject.IsAvailable.Store(true)
+				}
+			}
+		}
+		time.Sleep(1 * time.Second)
+	}
+}
+
+const TestFilePath = "./testFile.txt"
+
+func (o *ossManager) testClientUpload(ossObj *OSSObject) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, _, er := ossObj.Client.Upload(ctx, TestFilePath)
+	if er != nil {
+		o.l.Error(er.Error())
+		return er
+	}
+	return nil
+}
+
+func (o *ossManager) markAsFailed(object *OSSObject) {
 	object.FailureCount += 1
 	object.LastFailureAt = time.Now()
 	object.LastModified = time.Now()
+	object.IsFailure.Store(true)
 }
-func (o *ossManager) markAsAvailable(object *OSSObject, version int64) {
-	object.IsAvailable.Swap(true)
-	object.LastModified = time.Now()
-}
+
+//	func (o *ossManager) markAsAvailable(object *OSSObject) {
+//		object.IsAvailable.Swap(true)
+//		object.LastModified = time.Now()
+//	}
 func (o *ossManager) getAvailableOss() (*OSSObject, error) {
 	for _, obj := range o.OSSPool.mainPool {
-		if obj.IsAvailable.Load() {
+		if obj != nil && obj.IsAvailable.Load() {
+			atomic.AddInt64(&o.nAvailableOss, -1)
 			return obj, nil
 		}
 	}
 	for _, obj := range o.OSSPool.backupPool {
-		if obj.IsAvailable.Load() {
+		if obj != nil && obj.IsAvailable.Load() {
+			atomic.AddInt64(&o.nAvailableOss, -1)
 			return obj, nil
 		}
 	}
@@ -138,9 +180,10 @@ func NewOSSManager(l logger.ZapLogger, mainOss []oss.OSSHandler, backupOss []oss
 		}
 	}
 	return &ossManager{
-		l:       l,
-		OSSPool: ossPool,
-		msgChan: ch,
+		l:             l,
+		nAvailableOss: int64(ossPool.backupPoolSize + ossPool.mainPoolSize),
+		OSSPool:       ossPool,
+		msgChan:       ch,
 	}
 }
 
@@ -175,8 +218,10 @@ func (o *ossManager) Upload(filename string) {
 				}
 			}
 			o.l.Error(err.Error())
+			return
 		}
 		oss.IsAvailable.Store(true)
+		atomic.AddInt64(&o.nAvailableOss, 1)
 	}(ctx, availableOss)
 }
 

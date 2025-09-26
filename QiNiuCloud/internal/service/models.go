@@ -1,6 +1,7 @@
 package service
 
 import (
+	"QiNiuCloud/QiNiuCloud/internal/domain"
 	"QiNiuCloud/QiNiuCloud/internal/repository"
 	"QiNiuCloud/QiNiuCloud/pkg/logger"
 	"QiNiuCloud/QiNiuCloud/pkg/textshrink"
@@ -8,7 +9,7 @@ import (
 )
 
 type ModelsService interface {
-	Generate(ctx context.Context, text string) (string, error)
+	GenerateModel(ctx context.Context, text string) (string, error)
 }
 
 type service struct {
@@ -17,10 +18,10 @@ type service struct {
 	repo   repository.ModelsRepository
 }
 
-func (s *service) Generate(ctx context.Context, text string) (string, error) {
+func (s *service) GenerateModel(ctx context.Context, text string) ([]domain.ModelsInfo, error) {
 	keywords, err := s.shrink.Shrink(ctx, text)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return s.repo.Get(ctx, keywords)
+	return s.repo.GetModelsByToken(ctx, keywords)
 }

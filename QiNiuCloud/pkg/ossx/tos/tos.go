@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"github.com/volcengine/ve-tos-golang-sdk/v2/tos"
 	"strings"
 )
@@ -31,9 +30,9 @@ const (
 
 func (hdl *TosHandler) Upload(ctx context.Context, fileDir string) (string, string, error) {
 	bucket := releaseBucket
-	if preview {
-		bucket = previewBucket
-	}
+	//if preview {
+	//	bucket = previewBucket
+	//}
 	splitDir := strings.Split(fileDir, "\\")
 	rawName := splitDir[len(splitDir)-1]
 	filename := hdl.filenameToUniqueWithSalt(splitDir[len(splitDir)-1])
@@ -67,8 +66,6 @@ const salt = "xiFgge1O4DqWs5og"
 func (hdl *TosHandler) filenameToUniqueWithSalt(filename string) string {
 	// 结合文件名和盐值生成哈希，降低碰撞概率
 	data := []byte(filename + "|" + salt)
-	fmt.Println(data)
 	hash := sha256.Sum256(data)
-	fmt.Println(hash)
 	return hex.EncodeToString(hash[:])
 }
