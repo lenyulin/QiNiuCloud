@@ -1,8 +1,8 @@
 package event
 
 import (
-	"GoProj/wedy/pkg/saramax"
 	"QiNiuCloud/QiNiuCloud/pkg/logger"
+	"QiNiuCloud/QiNiuCloud/pkg/saramax"
 	"QiNiuCloud/QiNiuCloud/pkg/tcc"
 	"context"
 	"errors"
