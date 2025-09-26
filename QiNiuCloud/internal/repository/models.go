@@ -13,6 +13,7 @@ import (
 type ModelsRepository interface {
 	GetModelsByToken(ctx context.Context, key string) ([]domain.ModelsInfo, error)
 	Set(ctx context.Context, key string, value string) error
+	GetModelByHash(ctx context.Context, token, hash string) (bool, error)
 }
 type models struct {
 	l      logger.ZapLogger
@@ -29,16 +30,16 @@ func NewModelsRepository(l logger.ZapLogger, cache cache.Cache, dao dao.DAO, fil
 		filter: filter,
 	}
 }
-func (m *models) GetModelByHash(ctx context.Context, hash string) (bool, error) {
-	found, _ := m.cache.GetModelByHash(ctx, hash)
+func (m *models) GetModelByHash(ctx context.Context, token, hash string) (bool, error) {
+	found, _ := m.cache.GetModelByHash(ctx, token, hash)
 	if found {
 		return found, nil
 	}
-	return m.dao.GetModelByHash(ctx, hash)
+	return m.dao.GetModelByHash(ctx, token, hash)
 }
 
 func (m *models) GetModelsByToken(ctx context.Context, key string) ([]domain.ModelsInfo, error) {
-	res, err := m.cache.FindByObjId(ctx, key)
+	res, err := m.cache.FindByToken(ctx, key)
 	if err == nil {
 		return res, nil
 	}
@@ -76,7 +77,7 @@ func (m *models) GetModelsByToken(ctx context.Context, key string) ([]domain.Mod
 					Key: "error",
 					Val: err.Error()},
 			)
-			return nil, err
+			return nil, ErrResourceNotFound
 		}
 		return res, nil
 	}

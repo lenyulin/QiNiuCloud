@@ -44,7 +44,7 @@ func (h *ModelsHandler) Generate(ctx *gin.Context) {
 		return
 	}
 	//usr := ctx.MustGet("user").(UserClaims)
-	res, err := h.svc.Generate(ctx, r.Description)
+	res, err := h.svc.GenerateModel(ctx, r.Description)
 	if err != nil {
 		h.l.Debug(err.Error())
 		ctx.JSON(http.StatusOK, Result{

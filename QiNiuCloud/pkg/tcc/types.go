@@ -9,3 +9,8 @@ const (
 	StatusCompleted  TransactionStatus = "COMPLETED"  // 已完成
 	StatusCanceled   TransactionStatus = "CANCELED"   // 已取消
 )
+
+type ModelGenerateTransactionData struct {
+	KeyWordsToken string
+	TransactionId string
+}

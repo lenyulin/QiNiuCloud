@@ -23,7 +23,6 @@ func (m *TCCManagerV1) Try(ctx context.Context, gtid string, data interface{}) e
 	}
 	tx := m.manager.NewTransaction(gtid, data)
 	if err := m.manager.RunTransaction(ctx, tx); err != nil {
-		////处理事务执行失败
 		fmt.Printf("Transaction failed: %v\n", err)
 		return err
 	} else {

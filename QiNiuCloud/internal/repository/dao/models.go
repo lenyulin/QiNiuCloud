@@ -11,8 +11,8 @@ import (
 
 type DAO interface {
 	FindByObjId(ctx context.Context, key string) ([]domain.ModelsInfo, error)
-	Set(ctx context.Context, key string, value string) error
-	GetModelByHash(ctx context.Context, hash string) (bool, error)
+	Set(ctx context.Context, key string, model domain.ModelsInfo) error
+	GetModelByHash(ctx context.Context, token, hash string) (bool, error)
 }
 type MongoDBDAO struct {
 	client *mongo.Client
@@ -24,6 +24,23 @@ const (
 	COLLECTION = "collection"
 )
 
+func (dao *MongoDBDAO) GetModelByHash(ctx context.Context, token, hash string) (bool, error) {
+	coll := dao.client.Database(DATABASE).Collection(COLLECTION)
+	filter := bson.D{
+		bson.E{"token", token},
+		bson.E{"hash", hash},
+	}
+	var result Models
+	err := coll.FindOne(context.TODO(), filter).Decode(&result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false, ErrRecordNotFound
+		}
+		dao.l.Error("UNKNOWN ERROR WHEN SEARCHING TOKEN: " + token)
+		return false, ErrUnknown
+	}
+	return true, nil
+}
 func (dao *MongoDBDAO) FindByObjId(ctx context.Context, token string) ([]domain.ModelsInfo, error) {
 	coll := dao.client.Database(DATABASE).Collection(COLLECTION)
 	filter := bson.D{{"token", token}}
@@ -54,7 +71,7 @@ func (dao *MongoDBDAO) toDomain(models Models) []domain.ModelsInfo {
 	}
 	return results
 }
-func (dao *MongoDBDAO) Set(ctx context.Context, key string, value string) error {
+func (dao *MongoDBDAO) Set(ctx context.Context, key string, model domain.ModelsInfo) error {
 	//TODO implement me
 	panic("implement me")
 }

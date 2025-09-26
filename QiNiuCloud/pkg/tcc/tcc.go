@@ -62,11 +62,9 @@ func (m *TCCManager) RegisterAction(gtid string, action TccAction) error {
 }
 
 func (m *TCCManager) RunTransaction(ctx context.Context, tx *Transaction) error {
-	// 保存事务到管理器
 	m.mu.Lock()
 	m.transactions[tx.ID] = tx
 	m.mu.Unlock()
-
 	if err := m.executeTryPhase(ctx, tx); err != nil {
 		if cancelErr := m.executeCancelPhase(ctx, tx); cancelErr != nil {
 			return fmt.Errorf("try failed and cancel error: %v, cancel err: %v", err, cancelErr)
