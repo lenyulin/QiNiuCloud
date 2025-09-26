@@ -35,7 +35,7 @@ func (hdl *OssHandler) filenameToUniqueWithSalt(filename string) string {
 }
 
 // Upload filename example C:\Users\lyl69\GolandProjects\anqi\recoder\downloads\抖音直播\演员_陈安琪_2025-08-21_05-54-50_000.mp4
-func (hdl *OssHandler) Upload(ctx context.Context, fileDir string, preview bool) (string, string, error) {
+func (hdl *OssHandler) Upload(ctx context.Context, fileDir string) (string, string, error) {
 	splitDir := strings.Split(fileDir, "\\")
 	rawName := splitDir[len(splitDir)-1]
 	filename := hdl.filenameToUniqueWithSalt(splitDir[len(splitDir)-1])

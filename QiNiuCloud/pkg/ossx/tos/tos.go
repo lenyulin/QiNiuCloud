@@ -29,7 +29,7 @@ const (
 	previewBucket = "records-preview"
 )
 
-func (hdl *TosHandler) Upload(ctx context.Context, fileDir string, preview bool) (string, string, error) {
+func (hdl *TosHandler) Upload(ctx context.Context, fileDir string) (string, string, error) {
 	bucket := releaseBucket
 	if preview {
 		bucket = previewBucket
