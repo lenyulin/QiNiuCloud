@@ -7,6 +7,8 @@ require (
 	github.com/bits-and-blooms/bloom/v3 v3.7.0
 	github.com/gin-gonic/gin v1.11.0
 	github.com/redis/go-redis/v9 v9.14.0
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ai3d v1.1.33
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.1.33
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.69
 	github.com/volcengine/ve-tos-golang-sdk/v2 v2.7.22
 	go.mongodb.org/mongo-driver/v2 v2.3.0

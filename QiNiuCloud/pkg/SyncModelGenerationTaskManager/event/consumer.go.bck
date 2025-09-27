@@ -1,0 +1,52 @@
+package event
+
+import (
+	"QiNiuCloud/QiNiuCloud/pkg/logger"
+	"QiNiuCloud/QiNiuCloud/pkg/saramax"
+	"context"
+	"errors"
+	"github.com/IBM/sarama"
+	"time"
+)
+
+type ManagerWatchEventConsumer struct {
+	manager SyncModelGenerationTaskManager.TaskManager
+	client  sarama.Client
+	log     logger.LoggerV1
+}
+
+func NewTCCManagerWatchEventConsumer(client sarama.Client, log logger.LoggerV1) *ManagerWatchEventConsumer {
+	return &ManagerWatchEventConsumer{
+		client: client,
+		log:    log,
+	}
+}
+
+func (i *ManagerWatchEventConsumer) Start() error {
+	cg, err := sarama.NewConsumerGroupFromClient("tcc_manager_group", i.client)
+	if err != nil {
+		return err
+	}
+	go func() {
+		er := cg.Consume(context.Background(),
+			[]string{TopicWatchEvent},
+			saramax.NewHandler[AddTCCEvent](i.log, i.Consume))
+		if er != nil {
+			i.log.Error("TCC Consume ERROR", logger.Error(er))
+		}
+	}()
+	return nil
+}
+
+func (i *ManagerWatchEventConsumer) Consume(msg *sarama.ConsumerMessage, event AddTCCEvent) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	switch event.Status {
+	case StatusTrying:
+		return i.manager.Try(ctx, event.TCCIdx, event.DATA)
+	case StatusConfirming:
+		return i.manager.Confirm(ctx, event.TCCIdx)
+	default:
+		return errors.New(string("unknow status " + event.Status))
+	}
+}

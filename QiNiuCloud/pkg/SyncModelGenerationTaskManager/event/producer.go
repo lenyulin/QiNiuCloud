@@ -1,18 +1,16 @@
 package event
 
 import (
-	"QiNiuCloud/QiNiuCloud/pkg/tcc"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/IBM/sarama"
-	"github.com/redis/go-redis/v9"
 	"strconv"
 	"time"
 )
 
-type TCCMegProducer interface {
-	TCCMangerProduceAddTCCEvent(evt AddTCCEvent) error
+type ModelProviderResultProducer interface {
+	AddEvent(evt AddEvent) error
 }
 
 const (
@@ -25,13 +23,11 @@ var (
 
 type SaramaSyncProducer struct {
 	producer sarama.SyncProducer
-	redis    *redis.Client
 }
 
 var PartitionCount = 3
 
-func (s *SaramaSyncProducer) AddTCCEvent(evt AddTCCEvent) error {
-	evt.Status = TransactionStatus(tcc.StatusTrying)
+func (s *SaramaSyncProducer) AddEvent(evt AddEvent) error {
 	val, err := json.Marshal(&evt)
 	if err != nil {
 		fmt.Println(err)
