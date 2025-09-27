@@ -13,11 +13,11 @@ type ModelsHandler struct {
 	l      logger.ZapLogger
 }
 
-func (h *ModelsHandler) RegisiterRoutes(server *gin.Engine) {
+func (h *ModelsHandler) RegisiterModelRoutes(server *gin.Engine) {
 	ug := server.Group("/models")
 	ug.GET("/generate", h.Generate)
 }
-func NewCommentHandler(svc service.ModelsService) *ModelsHandler {
+func NewModelHandler(svc service.ModelsService) *ModelsHandler {
 	return &ModelsHandler{
 		svc: svc,
 	}
