@@ -11,7 +11,15 @@ import (
 
 type SyncModelGenerationTaskManager interface {
 	AddTask(ctx context.Context, gtid string, token string) error
-	QueryTask(txid string, bizData interface{}) error
+	QueryTask(txid string, bizData interface{}) (TransactionStatus, error)
+}
+
+func NewSyncModelGenerationTaskManager(l logger.LoggerV1, redis redis.Cmdable, providerManager ModelAPIsProviderManager) SyncModelGenerationTaskManager {
+	return &TaskManager{
+		l:               l,
+		redis:           redis,
+		providerManager: providerManager,
+	}
 }
 
 type Action interface {
@@ -34,9 +42,9 @@ type ModelGenerateTransactionData struct {
 	TransactionId string
 }
 type TaskManager struct {
-	l               logger.ZapLogger
+	l               logger.LoggerV1
 	mu              sync.RWMutex
-	redis           *redis.Client
+	redis           redis.Cmdable
 	transactions    map[string]*Transaction
 	timeout         time.Duration
 	providerManager ModelAPIsProviderManager

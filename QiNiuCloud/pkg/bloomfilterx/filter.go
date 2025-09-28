@@ -12,7 +12,7 @@ type BloomFilter interface {
 }
 type filter struct {
 	f *bloom.BloomFilter
-	l logger.ZapLogger
+	l logger.LoggerV1
 }
 
 func (f *filter) Get(ctx context.Context, key string) (bool, error) {
@@ -28,7 +28,7 @@ func (f *filter) Set(ctx context.Context, key string) error {
 }
 
 // NewBuilder Generate a bloom filter,  n  type uint means n items, fp type float64 means false positives.
-func NewBuilder(l logger.ZapLogger, n uint, fp float64) BloomFilter {
+func NewbloomBuilder(l logger.LoggerV1, n uint, fp float64) BloomFilter {
 	f := bloom.NewWithEstimates(n, fp)
 	return &filter{
 		l: l,

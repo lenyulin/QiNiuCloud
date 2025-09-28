@@ -21,6 +21,12 @@ var (
 	ErrProduceSubmitFailure = errors.New("failed to produce summit events")
 )
 
+func NewModelProviderResultProducer(producer sarama.SyncProducer) ModelProviderResultProducer {
+	return &SaramaSyncProducer{
+		producer: producer,
+	}
+}
+
 type SaramaSyncProducer struct {
 	producer sarama.SyncProducer
 }

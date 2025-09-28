@@ -16,14 +16,14 @@ type ModelsRepository interface {
 	GetModelByHash(ctx context.Context, token, hash string) (bool, error)
 }
 type models struct {
-	l                logger.ZapLogger
+	l                logger.LoggerV1
 	modelCache       cache.ModelCache
 	interactiveCache cache.InteractiveCache
 	dao              dao.DAO
 	filter           bloomfilterx.BloomFilter
 }
 
-func NewModelsRepository(l logger.ZapLogger, cache cache.ModelCache, dao dao.DAO, filter bloomfilterx.BloomFilter, interactiveCache cache.InteractiveCache) ModelsRepository {
+func NewModelsRepository(l logger.LoggerV1, cache cache.ModelCache, dao dao.DAO, filter bloomfilterx.BloomFilter, interactiveCache cache.InteractiveCache) ModelsRepository {
 	return &models{
 		l:                l,
 		modelCache:       cache,

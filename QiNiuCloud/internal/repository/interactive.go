@@ -20,10 +20,10 @@ type InteractiveRepository interface {
 type CachedInteractiveRepository struct {
 	dao   dao.InteractiveDao
 	cache cache.InteractiveCache
-	l     logger.ZapLogger
+	l     logger.LoggerV1
 }
 
-func NewCachedInteractiveRepository(dao dao.InteractiveDao, cache cache.InteractiveCache, l logger.ZapLogger) InteractiveRepository {
+func NewCachedInteractiveRepository(dao dao.InteractiveDao, cache cache.InteractiveCache, l logger.LoggerV1) InteractiveRepository {
 	return &CachedInteractiveRepository{
 		dao:   dao,
 		cache: cache,

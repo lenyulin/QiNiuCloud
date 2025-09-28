@@ -12,7 +12,7 @@ import (
 )
 
 type HunyuanTo3D struct {
-	l          logger.ZapLogger
+	l          logger.LoggerV1
 	client     *ai3d.Client
 	credential common.Credential
 	producer   event.ModelProviderResultProducer
@@ -125,11 +125,7 @@ type Resp struct {
 	} `json:"Response"`
 }
 
-func NewHunyuanTo3D(l logger.ZapLogger, client *ai3d.Client) ProviderSpecificGenerator {
-	//credential := common.NewCredential(
-	//	os.Getenv("TENCENTCLOUD_SECRET_ID"),
-	//	os.Getenv("TENCENTCLOUD_SECRET_KEY"),
-	//)
+func NewHunyuanTo3D(l logger.LoggerV1, client *ai3d.Client) ProviderSpecificGenerator {
 	return &HunyuanTo3D{
 		l:      l,
 		client: client,

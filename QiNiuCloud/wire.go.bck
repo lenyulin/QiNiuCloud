@@ -1,0 +1,55 @@
+package main
+
+import (
+	"QiNiuCloud/QiNiuCloud/internal/repository"
+	"QiNiuCloud/QiNiuCloud/internal/repository/cache"
+	"QiNiuCloud/QiNiuCloud/internal/repository/dao"
+	"QiNiuCloud/QiNiuCloud/internal/service"
+	"QiNiuCloud/QiNiuCloud/internal/web"
+	"QiNiuCloud/QiNiuCloud/ioc"
+	"github.com/google/wire"
+)
+
+var thirdPartySet = wire.NewSet(
+	ioc.InitMongoDB,
+	ioc.InitSaramaClient,
+	ioc.InitRedis,
+	ioc.InitMultiOssManager,
+	ioc.InitLogger,
+	ioc.InitBloomFilter,
+	ioc.NewHTTPClient,
+	ioc.InitServer,
+	ioc.InitConsumers,
+	ioc.InitSyncProducer,
+	ioc.InitSnowflake,
+	ioc.InitHunYuan3D,
+	ioc.InitResultHelper,
+	ioc.InitNewSyncModelGenerationTaskManager,
+	ioc.InitModelAPIsProviderManager,
+	ioc.InitModelInfoInsertProducer,
+	ioc.InitHunyuanTo3DProvider,
+	ioc.InitModelProviderResultProducer,
+	ioc.InitShrink,
+)
+var modelSet = wire.NewSet(
+	web.NewModelHandler,
+	service.NewModelService,
+	repository.NewModelsRepository,
+	dao.NewMongoDBDAO,
+	cache.NewCache,
+)
+var interactiveSet = wire.NewSet(
+	web.NewInteractiveHandler,
+	service.NewInteractiveService,
+	repository.NewCachedInteractiveRepository,
+	cache.NewInteractiveRedisCache,
+)
+
+func InitAPP() *App {
+	wire.Build(
+		thirdPartySet,
+		modelSet,
+		interactiveSet,
+		wire.Struct(new(App), "*"))
+	return new(App)
+}

@@ -10,7 +10,7 @@ import (
 type ModelsHandler struct {
 	server *gin.Engine
 	svc    service.ModelsService
-	l      logger.ZapLogger
+	l      logger.LoggerV1
 }
 
 func (h *ModelsHandler) RegisiterModelRoutes(server *gin.Engine) {
@@ -45,12 +45,19 @@ func (h *ModelsHandler) Generate(ctx *gin.Context) {
 		return
 	}
 	//usr := ctx.MustGet("user").(UserClaims)
-	res, err := h.svc.GenerateModel(ctx, r.Description)
+	res, txid, err := h.svc.GenerateModel(ctx, r.Description)
 	if err != nil {
 		h.l.Debug(err.Error())
 		ctx.JSON(http.StatusOK, Result{
 			Code: http.StatusInternalServerError,
 			Msg:  "Internal Server Error",
+		})
+		return
+	}
+	if txid != "" {
+		ctx.JSON(http.StatusOK, Result{
+			Code: http.StatusOK,
+			Data: txid,
 		})
 		return
 	}

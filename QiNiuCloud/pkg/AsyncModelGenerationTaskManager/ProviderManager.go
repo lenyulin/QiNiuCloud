@@ -23,7 +23,7 @@ var (
 )
 
 type generatorManager struct {
-	l             logger.ZapLogger
+	l             logger.LoggerV1
 	client        *http.Client
 	mu            sync.RWMutex
 	pTransactions map[string]*ProviderTransaction
@@ -88,7 +88,7 @@ func (g *generatorManager) QueryTask(txid string, bizData interface{}) (Transact
 	return StatusCompleted, nil
 }
 
-func NewModelAPIsProviderManager(l logger.ZapLogger, providers []Providers.ProviderSpecificGenerator) ModelAPIsProviderManager {
+func NewModelAPIsProviderManager(l logger.LoggerV1, providers []Providers.ProviderSpecificGenerator) ModelAPIsProviderManager {
 	client := createHTTPClientWithConnectPool()
 	defer func() {
 		if transport, ok := client.Transport.(*http.Transport); ok {

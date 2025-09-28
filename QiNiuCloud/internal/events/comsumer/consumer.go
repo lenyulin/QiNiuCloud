@@ -17,10 +17,11 @@ type InsertModelInfoConsumer struct {
 	svc    service.ModelsService
 }
 
-func NewTCCManagerWatchEventConsumer(client sarama.Client, log logger.LoggerV1) *InsertModelInfoConsumer {
+func NewInsertModelInfoToDBEventConsumer(client sarama.Client, l logger.LoggerV1, svc service.ModelsService) *InsertModelInfoConsumer {
 	return &InsertModelInfoConsumer{
 		client: client,
-		log:    log,
+		log:    l,
+		svc:    svc,
 	}
 }
 

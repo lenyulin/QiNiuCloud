@@ -29,12 +29,15 @@ type InteractiveCache interface {
 	Set(ctx context.Context, interactive domain.Interactive) error
 }
 type InteractiveRedisCache struct {
-	l      logger.ZapLogger
+	l      logger.LoggerV1
 	client redis.Cmdable
 }
 
-func NewInteractiveRedisCache(client redis.Cmdable) InteractiveCache {
-	return &InteractiveRedisCache{client: client}
+func NewInteractiveRedisCache(l logger.LoggerV1, client redis.Cmdable) InteractiveCache {
+	return &InteractiveRedisCache{
+		l:      l,
+		client: client,
+	}
 }
 func (i *InteractiveRedisCache) IncrCloseAfterDownloadedCntIfPresent(ctx context.Context, token string, hash string) error {
 	return i.client.Eval(ctx, luaIncrCnt, []string{i.generateKey(token, hash)}, fieldCloseAfterDownloadedCnt, 1).Err()

@@ -16,10 +16,16 @@ type ModelCache interface {
 }
 
 type redisCache struct {
-	client *redis.Client
-	l      logger.ZapLogger
+	client redis.Cmdable
+	l      logger.LoggerV1
 }
 
+func NewCache(client redis.Cmdable, l logger.LoggerV1) ModelCache {
+	return &redisCache{
+		client: client,
+		l:      l,
+	}
+}
 func (r *redisCache) FindByToken(ctx context.Context, key string) ([]domain.ModelsInfo, error) {
 	res, err := r.client.SMembers(ctx, key).Result()
 	if err != nil {
@@ -63,7 +69,7 @@ func (r *redisCache) GetModelByHash(ctx context.Context, token, hash string) (bo
 	return false, nil
 }
 
-func NewRedisCache(client *redis.Client, l logger.ZapLogger) ModelCache {
+func NewRedisCache(client redis.Cmdable, l logger.LoggerV1) ModelCache {
 	return &redisCache{
 		client: client,
 		l:      l,

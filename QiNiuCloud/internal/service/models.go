@@ -13,16 +13,25 @@ import (
 )
 
 type ModelsService interface {
-	GenerateModel(ctx context.Context, text string) (string, error)
+	GenerateModel(ctx context.Context, text string) ([]domain.ModelsInfo, string, error)
 	AddModelToDB(ctx context.Context, model domain.ModelsInfo) error
 }
 
 type service struct {
-	l                logger.ZapLogger
+	l                logger.LoggerV1
 	shrink           textshrink.Shrink
 	modelRepo        repository.ModelsRepository
 	snowflake        snowflake.Snowflake
 	generatorManager AsyncModelGenerationTaskManager.SyncModelGenerationTaskManager
+}
+
+func NewModelService(l logger.LoggerV1, shrink textshrink.Shrink, modelRepo repository.ModelsRepository, generatorManager AsyncModelGenerationTaskManager.SyncModelGenerationTaskManager) ModelsService {
+	return &service{
+		l:                l,
+		shrink:           shrink,
+		modelRepo:        modelRepo,
+		generatorManager: generatorManager,
+	}
 }
 
 const TccManagerProduceAddEvtTopic = "model_generate_tcc_evt"

@@ -1,20 +1,11 @@
 package ioc
 
 import (
+	"QiNiuCloud/QiNiuCloud/pkg/logger"
+	"QiNiuCloud/QiNiuCloud/pkg/textshrink"
 	"net/http"
-	"time"
 )
 
-func NewHTTPClient() *http.Client {
-	transport := &http.Transport{
-		MaxIdleConns:        200,
-		MaxIdleConnsPerHost: 10,
-		MaxConnsPerHost:     50,
-		IdleConnTimeout:     30 * time.Second,
-		TLSHandshakeTimeout: 5 * time.Second,
-	}
-	return &http.Client{
-		Transport: transport,
-		Timeout:   15 * time.Second,
-	}
+func InitShrink(clientPool *http.Client, l logger.LoggerV1) textshrink.Shrink {
+	return textshrink.NewShrink(clientPool, l)
 }

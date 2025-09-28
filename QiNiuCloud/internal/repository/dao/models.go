@@ -16,7 +16,11 @@ type DAO interface {
 }
 type MongoDBDAO struct {
 	client *mongo.Client
-	l      logger.ZapLogger
+	l      logger.LoggerV1
+}
+
+func NewMongoDBDAO(client *mongo.Client, l logger.LoggerV1) DAO {
+	return &MongoDBDAO{client: client, l: l}
 }
 
 const (

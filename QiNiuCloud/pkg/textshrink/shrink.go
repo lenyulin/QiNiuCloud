@@ -14,7 +14,7 @@ type Shrink interface {
 }
 type Shrinker struct {
 	clientPool *http.Client
-	l          logger.ZapLogger
+	l          logger.LoggerV1
 }
 
 const (
@@ -25,7 +25,7 @@ const (
 	ROLE            = "user"
 )
 
-func NewShrink(clientPool *http.Client, l logger.ZapLogger) Shrink {
+func NewShrink(clientPool *http.Client, l logger.LoggerV1) Shrink {
 	return &Shrinker{
 		clientPool: clientPool,
 		l:          l,

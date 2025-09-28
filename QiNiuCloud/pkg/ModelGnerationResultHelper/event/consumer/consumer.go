@@ -16,10 +16,11 @@ type ManagerWatchEventConsumer struct {
 	helper ModelGnerationResultHelper.ResultHelper
 }
 
-func NewTCCManagerWatchEventConsumer(client sarama.Client, log logger.LoggerV1) *ManagerWatchEventConsumer {
+func NewTCCManagerWatchEventConsumer(client sarama.Client, log logger.LoggerV1, helper ModelGnerationResultHelper.ResultHelper) *ManagerWatchEventConsumer {
 	return &ManagerWatchEventConsumer{
 		client: client,
 		log:    log,
+		helper: helper,
 	}
 }
 

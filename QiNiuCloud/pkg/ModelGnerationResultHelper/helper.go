@@ -22,10 +22,20 @@ import (
 type ResultHelper interface {
 	Process(ctx context.Context, jobId string, model ModelsInfo) error
 }
+
+func NewResultHelper(l logger.LoggerV1, clients *http.Client, redis redis.Cmdable, producer producer.ModelInfoInsertProducer) ResultHelper {
+	return &helper{
+		l:        l,
+		clients:  clients,
+		redis:    redis,
+		producer: producer,
+	}
+}
+
 type helper struct {
-	l        logger.ZapLogger
+	l        logger.LoggerV1
 	clients  *http.Client
-	redis    *redis.Client
+	redis    redis.Cmdable
 	sf       snowflake.Snowflake
 	msgChan  chan *MultiOssManager.ActorMsg
 	txTable  map[string]struct{}

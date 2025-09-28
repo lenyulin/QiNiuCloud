@@ -55,8 +55,8 @@ type Status struct {
 	IsFailure   bool
 }
 type ossManager struct {
-	l             logger.ZapLogger
-	redis         *redis.Client
+	l             logger.LoggerV1
+	redis         redis.Cmdable
 	nAvailableOss int64
 	OSSPool       *OSSPool
 	msgChan       chan *ActorMsg
@@ -145,7 +145,7 @@ func (o *ossManager) getAvailableOss() (*OSSObject, error) {
 	}
 	return nil, errors.New("ossManager getAvailableOssClient failed")
 }
-func NewOSSManager(l logger.ZapLogger, mainOss []oss.OSSHandler, backupOss []oss.OSSHandler) MultiOssManager {
+func NewOSSManager(l logger.LoggerV1, mainOss []oss.OSSHandler, backupOss []oss.OSSHandler) MultiOssManager {
 	ch := make(chan *ActorMsg, 1000)
 	ossPool := &OSSPool{
 		mainPool:   make([]*OSSObject, 0),

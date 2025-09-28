@@ -1,9 +1,8 @@
 package event
 
-type Consumer interface {
-	Start() error
-}
-
+//	type Consumer interface {
+//		Start() error
+//	}
 type AddEvent struct {
 	Partition int32
 	Offset    string

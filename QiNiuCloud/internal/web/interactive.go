@@ -15,7 +15,7 @@ func (h *InteractiveHandler) RegisiterInteractiveRoutes(server *gin.Engine) {
 type InteractiveHandler struct {
 	server *gin.Engine
 	svc    service.InteractiveService
-	l      logger.ZapLogger
+	l      logger.LoggerV1
 }
 
 func NewInteractiveHandler(svc service.InteractiveService) *InteractiveHandler {
