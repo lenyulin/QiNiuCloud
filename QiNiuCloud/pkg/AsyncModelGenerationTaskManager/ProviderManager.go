@@ -1,7 +1,7 @@
-package SyncModelGenerationTaskManager
+package AsyncModelGenerationTaskManager
 
 import (
-	"QiNiuCloud/QiNiuCloud/pkg/SyncModelGenerationTaskManager/Providers"
+	"QiNiuCloud/QiNiuCloud/pkg/AsyncModelGenerationTaskManager/Providers"
 	"QiNiuCloud/QiNiuCloud/pkg/logger"
 	"errors"
 	"fmt"

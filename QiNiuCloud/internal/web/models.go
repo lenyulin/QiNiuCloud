@@ -17,6 +17,7 @@ func (h *ModelsHandler) RegisiterModelRoutes(server *gin.Engine) {
 	ug := server.Group("/models")
 	ug.GET("/generate", h.Generate)
 }
+
 func NewModelHandler(svc service.ModelsService) *ModelsHandler {
 	return &ModelsHandler{
 		svc: svc,

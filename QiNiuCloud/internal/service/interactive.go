@@ -7,6 +7,8 @@ import (
 
 type InteractiveService interface {
 	IncrLinkCnt(ctx context.Context, token string, hash string) error
+	IncrDownloadCnt(ctx context.Context, token string, hash string) error
+	IncrCloseAfterDownloadedCnt(ctx context.Context, token string, hash string) error
 }
 type interactiveService struct {
 	repo repository.InteractiveRepository
@@ -20,4 +22,10 @@ func NewInteractiveService(repo repository.InteractiveRepository) InteractiveSer
 
 func (s *interactiveService) IncrLinkCnt(ctx context.Context, token string, hash string) error {
 	return s.repo.IncrLinkCnt(ctx, token, hash)
+}
+func (s *interactiveService) IncrDownloadCnt(ctx context.Context, token string, hash string) error {
+	return s.repo.IncrDownloadCnt(ctx, token, hash)
+}
+func (s *interactiveService) IncrCloseAfterDownloadedCnt(ctx context.Context, token string, hash string) error {
+	return s.repo.IncrDownloadCnt(ctx, token, hash)
 }

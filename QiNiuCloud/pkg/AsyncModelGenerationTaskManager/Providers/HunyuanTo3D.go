@@ -1,7 +1,7 @@
 package Providers
 
 import (
-	"QiNiuCloud/QiNiuCloud/pkg/SyncModelGenerationTaskManager/event"
+	"QiNiuCloud/QiNiuCloud/pkg/AsyncModelGenerationTaskManager/event"
 	"QiNiuCloud/QiNiuCloud/pkg/logger"
 	"encoding/json"
 	"fmt"
@@ -77,6 +77,7 @@ func (h *HunyuanTo3D) QueryTask(client *http.Client, txId string, jobId string, 
 	}
 	if *response.Response.Status == "DONE" {
 		err = h.ReportResult(txId, token, &ModelGenerationTaskResult{
+			jobiD: "HUNYUAN" + r.Response.RequestId,
 			token: token,
 			url:   r.Response.ResultFile3Ds[0].Url,
 			thumb: r.Response.ResultFile3Ds[0].PreviewImageUrl,

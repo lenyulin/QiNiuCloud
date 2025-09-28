@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type Cache interface {
+type ModelCache interface {
 	FindByToken(ctx context.Context, key string) ([]domain.ModelsInfo, error)
 	Set(ctx context.Context, key string, modelInfo domain.ModelsInfo) error
 	GetModelByHash(ctx context.Context, token, hash string) (bool, error)
@@ -63,7 +63,7 @@ func (r *redisCache) GetModelByHash(ctx context.Context, token, hash string) (bo
 	return false, nil
 }
 
-func NewRedisCache(client *redis.Client, l logger.ZapLogger) Cache {
+func NewRedisCache(client *redis.Client, l logger.ZapLogger) ModelCache {
 	return &redisCache{
 		client: client,
 		l:      l,

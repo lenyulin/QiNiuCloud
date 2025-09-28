@@ -1,8 +1,4 @@
-package event
-
-type Consumer interface {
-	Start() error
-}
+package producer
 
 type AddEvent struct {
 	Partition int32
@@ -14,5 +10,5 @@ type AddEvent struct {
 }
 
 const (
-	TopicWatchEvent = "model_generate_result_watch"
+	TopicInsertModelInfoToDBEvent = "topic_insert_model_info_event"
 )

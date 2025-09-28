@@ -5,12 +5,14 @@ import (
 	oss "QiNiuCloud/QiNiuCloud/pkg/ossx"
 	"context"
 	"errors"
+	"github.com/redis/go-redis/v9"
+	"path/filepath"
 	"sync/atomic"
 	"time"
 )
 
 type MultiOssManager interface {
-	Upload(filename string)
+	Upload(tx string, filename string)
 	Delete()
 	Find()
 }
@@ -43,8 +45,9 @@ const (
 
 type ActorMsg struct {
 	ossObject *OSSObject
-	op        int
-	fileName  string
+	Op        int
+	FileName  string
+	TxId      string
 	status    Status
 }
 type Status struct {
@@ -53,6 +56,7 @@ type Status struct {
 }
 type ossManager struct {
 	l             logger.ZapLogger
+	redis         *redis.Client
 	nAvailableOss int64
 	OSSPool       *OSSPool
 	msgChan       chan *ActorMsg
@@ -63,9 +67,9 @@ func (o *ossManager) GetAvailableOssCount() int64 {
 }
 func (o *ossManager) RunActor() {
 	for msg := range o.msgChan {
-		switch msg.op {
+		switch msg.Op {
 		case UploadFileToOSS:
-			o.Upload(msg.fileName)
+			o.Upload(msg.TxId, msg.FileName)
 		case DeleteFileFromOSS:
 			o.Delete()
 		case FindFileFromOSS:
@@ -189,7 +193,7 @@ func NewOSSManager(l logger.ZapLogger, mainOss []oss.OSSHandler, backupOss []oss
 
 const MaxRetryCount = 3
 
-func (o *ossManager) Upload(filename string) {
+func (o *ossManager) Upload(tx string, filename string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
 	availableOss, err := o.getAvailableOss()
@@ -198,19 +202,20 @@ func (o *ossManager) Upload(filename string) {
 	}
 	go func(ctx context.Context, oss *OSSObject) {
 		retry := 0
+		url := ""
 		_, _, er := oss.Client.Upload(ctx, filename)
 		for er != nil && retry <= MaxRetryCount {
 			//进一步处理?
 			retry += 1
 			time.Sleep(time.Millisecond * 30)
-			_, _, er = oss.Client.Upload(ctx, filename)
+			url, _, er = oss.Client.Upload(ctx, filename)
 		}
 		if er != nil {
 			if errors.Is(err, ErrOssClientFailed) {
 				o.msgChan <- &ActorMsg{
-					op:        ChangeOssStatusToFail,
+					Op:        ChangeOssStatusToFail,
 					ossObject: oss,
-					fileName:  filename,
+					FileName:  filename,
 					status: Status{
 						IsAvailable: false,
 						IsFailure:   true,
@@ -220,11 +225,21 @@ func (o *ossManager) Upload(filename string) {
 			o.l.Error(err.Error())
 			return
 		}
+		o.uploadDone(tx, filename, url)
 		oss.IsAvailable.Store(true)
 		atomic.AddInt64(&o.nAvailableOss, 1)
 	}(ctx, availableOss)
 }
-
+func (o *ossManager) uploadDone(tx string, filename string, url string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	ext := filepath.Ext(filename)
+	_, er := o.redis.HSet(ctx, tx, ext[1:], url).Result()
+	if er != nil {
+		//进一步处理
+		o.l.Error(er.Error())
+	}
+}
 func (o *ossManager) Delete() {
 	//TODO implement me
 	panic("implement me")

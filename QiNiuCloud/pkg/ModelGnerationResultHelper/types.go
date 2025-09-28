@@ -1,4 +1,4 @@
-package domain
+package ModelGnerationResultHelper
 
 type ModelsInfo struct {
 	Token                     string `json:"token"`
@@ -8,4 +8,10 @@ type ModelsInfo struct {
 	DownloadCount             int    `json:"download_count"`
 	LikeCount                 int    `json:"like_count"`
 	CloseAfterDownloadedCount int    `json:"close_after_downloaded_count"`
+}
+type ModelGenerationTaskResult struct {
+	JobId string `json:"job_id"`
+	Token string `json:"token"`
+	Url   string `json:"url"`
+	Thumb string `json:"thumb"`
 }

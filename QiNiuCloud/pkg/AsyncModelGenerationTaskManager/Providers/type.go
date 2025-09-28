@@ -11,6 +11,7 @@ type ProviderSpecificGenerator interface {
 }
 
 type ModelGenerationTaskResult struct {
+	jobiD string
 	token string
 	url   string
 	thumb string

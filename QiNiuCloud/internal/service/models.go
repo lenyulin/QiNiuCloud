@@ -3,10 +3,9 @@ package service
 import (
 	"QiNiuCloud/QiNiuCloud/internal/domain"
 	"QiNiuCloud/QiNiuCloud/internal/repository"
+	"QiNiuCloud/QiNiuCloud/pkg/AsyncModelGenerationTaskManager"
 	"QiNiuCloud/QiNiuCloud/pkg/logger"
 	"QiNiuCloud/QiNiuCloud/pkg/snowflake"
-	"QiNiuCloud/QiNiuCloud/pkg/tcc"
-	"QiNiuCloud/QiNiuCloud/pkg/tcc/event"
 	"QiNiuCloud/QiNiuCloud/pkg/textshrink"
 	"context"
 	"errors"
@@ -15,24 +14,43 @@ import (
 
 type ModelsService interface {
 	GenerateModel(ctx context.Context, text string) (string, error)
+	AddModelToDB(ctx context.Context, model domain.ModelsInfo) error
 }
 
 type service struct {
-	l                     logger.ZapLogger
-	shrink                textshrink.Shrink
-	repo                  repository.ModelsRepository
-	snowflake             snowflake.Snowflake
-	tccSaramaSyncProducer event.TCCMegProducer
+	l                logger.ZapLogger
+	shrink           textshrink.Shrink
+	modelRepo        repository.ModelsRepository
+	snowflake        snowflake.Snowflake
+	generatorManager AsyncModelGenerationTaskManager.SyncModelGenerationTaskManager
 }
 
 const TccManagerProduceAddEvtTopic = "model_generate_tcc_evt"
+
+var (
+	ErrAddModelToDB    = errors.New("add model to DB error")
+	ErrAddModelToCache = errors.New("add model to Cache error")
+)
+
+func (s *service) AddModelToDB(ctx context.Context, model domain.ModelsInfo) error {
+	err := s.modelRepo.Set(ctx, model.Token, model)
+	if err != nil {
+		s.l.Error("Add Model To DB failed",
+			logger.Field{
+				Key: "error",
+				Val: err.Error()},
+		)
+		return ErrAddModelToDB
+	}
+	return nil
+}
 
 func (s *service) GenerateModel(ctx context.Context, text string) ([]domain.ModelsInfo, string, error) {
 	keywordstoken, err := s.shrink.Shrink(ctx, text)
 	if err != nil {
 		return nil, "", err
 	}
-	res, err := s.repo.GetModelsByToken(ctx, keywordstoken)
+	res, err := s.modelRepo.GetModelsByToken(ctx, keywordstoken)
 	if err != nil {
 		if errors.Is(err, repository.ErrResourceNotFound) {
 			txid, err := s.snowflake.NextID()
@@ -44,17 +62,9 @@ func (s *service) GenerateModel(ctx context.Context, text string) ([]domain.Mode
 				)
 				return nil, "", ErrResourceNotFound
 			}
-			evt := event.AddTCCEvent{
-				TCCIdx: strconv.FormatInt(txid, 10),
-				Topic:  TccManagerProduceAddEvtTopic,
-				DATA: &tcc.ModelGenerateTransactionData{
-					KeyWordsToken: keywordstoken,
-					TransactionId: strconv.FormatInt(txid, 10),
-				},
-			}
-			err = s.tccSaramaSyncProducer.TCCMangerProduceAddTCCEvent(evt)
+			err = s.generatorManager.AddTask(ctx, strconv.FormatInt(txid, 10), keywordstoken)
 			if err != nil {
-				s.l.Error("Add Transaction Task failed",
+				s.l.Error("Add Model Generation Task failed",
 					logger.Field{
 						Key: "error",
 						Val: err.Error()},

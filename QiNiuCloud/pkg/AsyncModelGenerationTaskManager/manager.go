@@ -1,4 +1,4 @@
-package SyncModelGenerationTaskManager
+package AsyncModelGenerationTaskManager
 
 import (
 	"QiNiuCloud/QiNiuCloud/pkg/logger"
