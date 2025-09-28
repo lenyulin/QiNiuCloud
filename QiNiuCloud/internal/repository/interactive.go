@@ -2,7 +2,6 @@ package repository
 
 import (
 	"QiNiuCloud/QiNiuCloud/internal/repository/cache"
-	"QiNiuCloud/QiNiuCloud/internal/repository/dao"
 	"QiNiuCloud/QiNiuCloud/pkg/logger"
 	"context"
 	"errors"
@@ -18,14 +17,12 @@ type InteractiveRepository interface {
 }
 
 type CachedInteractiveRepository struct {
-	dao   dao.InteractiveDao
 	cache cache.InteractiveCache
 	l     logger.LoggerV1
 }
 
-func NewCachedInteractiveRepository(dao dao.InteractiveDao, cache cache.InteractiveCache, l logger.LoggerV1) InteractiveRepository {
+func NewCachedInteractiveRepository(cache cache.InteractiveCache, l logger.LoggerV1) InteractiveRepository {
 	return &CachedInteractiveRepository{
-		dao:   dao,
 		cache: cache,
 		l:     l,
 	}
